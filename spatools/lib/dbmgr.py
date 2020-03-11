@@ -260,7 +260,7 @@ def do_uploadgenotypes(args, dbh):
             print(assay_code)
             if assay_code not in assay_set:
 
-                assay = dbh.get_locus(assay_code)
+                assay = dbh.get_locus_by_code(assay_code)
                 if not assay:
 
                     # create and flush assay
