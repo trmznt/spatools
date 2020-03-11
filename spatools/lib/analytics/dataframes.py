@@ -97,7 +97,7 @@ class AlleleDataFrame(object):
 
 
     @property
-    def mlgt(self):
+    def mlgt_XXX(self):
         """ return MLGT (Multi Locus GenoTyping) dataframe
             this will drop samples with NaN (or None) allele, hence please
             check the dataframe first
@@ -119,30 +119,3 @@ class AlleleDataFrame(object):
         if self._unique_mlgt_df is None:
             self._unique_mlgt_df = self.mlgt.drop_duplicates()
         return self._unique_mlgt_df
-
-
-    @property
-    def allele_multiplicity(self):
-        if self._allele_multiplicity is None:
-            self._allele_multiplicity = pivot_table(self.df,
-                    index = ['sample_id'],
-                    columns = 'marker_id',
-                    values = 'value',
-                    aggfunc = len,
-                    fill_value=0)
-        return self._allele_multiplicity
-
-
-    @property
-    def sample_multiplicity(self):
-        if self._sample_multiplicity is None:
-            # apply max to each row (axis=1)
-            self._sample_multiplicity = self.allele_multiplicity.max(1)
-        return self._sample_multiplicity
-
-
-    @property
-    def locus_multiplicity(self):
-        if self._locus_multiplicity is None:
-            self._locus_multiplicity = self.allele_multiplicity.applymap(lambda x: 1 if x > 1 else 0)
-        return self._locus_multiplicity
