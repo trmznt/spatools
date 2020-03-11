@@ -101,16 +101,27 @@ class base_sqlhandler(object):
     ## getter for data
 
 
-    def get_allele_dataframe(self, sample_ids, variant_ids, params):
+    def get_allele_dataframe(self, sample_ids, locus_ids, params):
         """ return a Pandas dataframe with this columns
             ( marker_id, sample_id, basecall )
         """
 
-        q = self.session().query( self.Genotype.locus_id, self.Genotype.sample_id,
-                        self.Genotype.call )
+        q = self.session().query( self.Genotype.locus_id,
+                        self.Genotype.sample_id, self.Genotype.call,
+                        self.Genotype.A, self.Genotype.C,
+                        self.Genotype.G, self.Genotype.T,
+                        self.Genotype.sample_id )
+        if sample_ids:
+            q = q.filter( self.Genotype.sample_id.in_(sample_ids))
+        if locus_ids:
+            q = q.filter( self.Genotype.locus_id.in_(locus_ids))
 
-        df = DataFrame( [ (locus_id, sample_id, call) for (locus_id, sample_id, call) in q ] )
-        df.columns = ( 'locus_id', 'sample_id', 'call')
+        df = DataFrame( [
+            (locus_id, sample_id, call, A, C, G, T, genotype_id)
+                for (locus_id, sample_id, call, A, C, G, T, genotype_id) in q 
+            ] )
+        df.columns = ( 'locus_id', 'sample_id', 'call',
+                        'A', 'C', 'G', 'T', 'genotype_id' )
 
         return df
 
