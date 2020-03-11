@@ -109,6 +109,7 @@ class Selector(object):
 
 
     def get_sample_sets(self, dbh, sample_ids=None):
+        """ return a SampleSetContainer() """
 
         if not self._sample_sets:
 
@@ -150,19 +151,14 @@ class Filter(object):
 
     def __init__(self):
         self.markers = []
+        self.panel_ids = None
         self.marker_ids = None
         self.species = None
         self.abs_threshold = 0      # includes alelles above rfu
-        self.rel_threshold = 0.0      # includes alleles above % of highest rfu
         self.rel_cutoff = 0.0         # excludes alleles above % of highest rfu [ rel_threshold < height < rel_cutoff ]
         self.sample_qual_threshold = 0.0    # includes samples with marker more than %
         self.marker_qual_threshold = 0.0    # includes markers with sample more than %
-        self.peaktype = peaktype.bin
         self.sample_options = None
-        self.stutter_ratio = 0.0
-        self.stutter_range = 3.5
-        self.stutter_baserange = 4.5
-        self.stutter_baseratio = 0.1
 
 
     @staticmethod
@@ -170,14 +166,11 @@ class Filter(object):
         params = Filter()
         params.markers = d.get('markers', None)
         params.marker_ids = d.get('marker_ids', None)
+        params.panel_ids = d.get('panel_ids', None)
         params.abs_threshold = int( d['abs_threshold'] )
-        params.rel_threshold = float( d['rel_threshold'] )
-        params.rel_cutoff = float( d['rel_cutoff'] )
         params.sample_qual_threshold = float( d['sample_qual_threshold'] )
         params.marker_qual_threshold = float( d['marker_qual_threshold'] )
         params.sample_filtering = d.get('sample_filtering', 'N')
-        params.stutter_ratio = float(d.get('stutter_ratio', 0))
-        params.stutter_range = float(d.get('stutter_range', 3.5))
         return params
 
 
