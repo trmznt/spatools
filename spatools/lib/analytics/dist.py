@@ -50,16 +50,16 @@ class DistanceMatrix(object):
                 continue
             if self.H is None:
                 self.S = [ (hs, 0, hs.N) ]
-                self.H = hs.haplotype_df
-                self.I = hs.haplotype_df.index
+                self.H = hs.variant_df
+                self.I = hs.variant_df.index
                 self.C = [ hs.colour ] * hs.N
                 self.L = [ hs.label ] * hs.N
                 continue
             self.S.append( (hs, len(self.H), hs.N) )
-            self.H = self.H.append(hs.haplotype_df)
+            self.H = self.H.append(hs.variant_df)
             self.C += [ hs.colour ] * hs.N
             self.L += [ hs.label ] * hs.N
-            self.I += hs.haplotype_df.index
+            self.I = self.I.append(hs.variant_df.index)
 
         (m, v) = dfunc(self.H)
         self.M = m
