@@ -39,9 +39,9 @@ def genotype_csv2dict(istream, with_report=False, delimiter='\t'):
 
 
 def text_to_float(text):
-	if text.lower() == 'na':
-		return 0
-	return float(text)
+    if text.lower() == 'na':
+        return 0
+    return float(text)
 
 def parse_genotype_csv( reader, log, sample_func = None, existing_samples = None ):
 
@@ -53,29 +53,36 @@ def parse_genotype_csv( reader, log, sample_func = None, existing_samples = None
 
     for row in reader:
 
-    	counter += 1
-    	name = row['SAMPLE']
+        counter += 1
+        name = row['SAMPLE']
 
-    	if name in samples:
-    		sample = samples[name]
+        if name in samples:
+            sample = samples[name]
 
-    	else:
-    		sample = { 'code': name, 'assays': {} }
-    		samples[name] = sample
-    		sample_codes.append( name )
+        else:
+            sample = { 'code': name, 'assays': {} }
+            samples[name] = sample
+            sample_codes.append( name )
 
-    	assay_code = row['ASSAY']
-    	if assay_code not in assay_codes:
-    		assay_codes.append(assay_code)
+        assay_code = row['ASSAY']
+        if assay_code not in assay_codes:
+            assay_codes.append(assay_code)
 
-    	sample['assays'][assay_code] = {
-    		'refseq': row['REFSEQ'],
-    		'position': int(row['POS']),
-    		'A': ceil( text_to_float(row['A']) * 1000),
-    		'T': ceil( text_to_float(row['T']) * 1000),
-    		'C': ceil( text_to_float(row['C']) * 1000),
-    		'G': ceil( text_to_float(row['G']) * 1000),
-    	}
+        # sequenom instensity * 100
+
+        sample['assays'][assay_code] = {
+            'refseq': row['REFSEQ'],
+            'position': int(row['POS']),
+            'A': ceil( text_to_float(row['A']) * 100),
+            'T': ceil( text_to_float(row['T']) * 100),
+            'C': ceil( text_to_float(row['C']) * 100),
+            'G': ceil( text_to_float(row['G']) * 100),
+        }
+
+        assay_item = sample['assays'][assay_code]
+        assay_item['value'] = max( assay_item['A'], assay_item['T'],
+                                    assay_item['C'], assay_item['G'] )
+
 
     return samples, log, sample_codes
 
