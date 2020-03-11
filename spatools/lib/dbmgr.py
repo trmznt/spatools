@@ -11,13 +11,16 @@ def init_argparser(p = None):
     if p is None:
         p = argparse.ArgumentParser('spatools dbmgr')
 
-	# commands
+    # commands that modify database
 
     p.add_argument('--initbatch', default=False, action='store_true',
             help = 'create initial bin')
 
     p.add_argument('--uploadsamples', default=False, action='store_true',
             help = 'upload sample')
+
+    p.add_argument('--importpanels', default=False, action='store_true',
+            help = 'upload panel')
 
     p.add_argument('--uploadgenotypes', default=False, action='store_true',
             help = 'upload sample')
@@ -88,6 +91,9 @@ def do_dbmgr( args, dbh = None, warning = True ):
 
     elif args.uploadgenotypes is not False:
         do_uploadgenotypes(args, dbh)
+
+    elif args.importpanels is not False:
+        do_importpanels(args, dbh)
 
     elif args.createpca is not False:
         do_createpca(args, dbh)
@@ -283,6 +289,25 @@ def do_uploadgenotypes(args, dbh):
     #pprint.pprint(genotypes)
 
     cerr('INFO: Parsing %s samples' % len(genotypes))
+
+
+def do_importpanels(args, dbh):
+
+    if not args.infile:
+        cexit('ERR: please provide yaml input file')
+
+    d = yaml.load( open(args.infile) )
+    panel_specs = d['panels']
+
+    for panel_code, panel_spec in panel_specs.items():
+        loci_pos = panel_spec['loci']
+        loci = [ dbh.get_locus(refseq, pos)  for refseq, pos in loci_pos ]
+        panel = dbh.Panel()
+        panel.code = panel_code
+        dbh.session().add(panel)
+        for locus in loci:
+            panel.loci.append( locus )
+        cerr('[INFO: panel %s has been added with %d loci ]' % (panel.code, len(panel.loci)))
 
 
 def basecall( assay_data ):
