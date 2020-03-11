@@ -1,6 +1,6 @@
 
 from collections import defaultdict
-#from spatools.lib.analytics.dataframes import AlleleDataFrame
+from spatools.lib.analytics.dataframes import AlleleDataFrame
 #from spatools.lib.analytics.dataframes import GenotypeDataFrame
 from pandas import pivot_table
 from pprint import pprint
@@ -30,7 +30,7 @@ class AnalyticalSet(object):
 
         # placeholder
 
-        self._marker_df = None
+        self._variant_df = None
 
         self._filtered_sample_ids = None
         self._filtered_marker_ids = None
@@ -69,7 +69,7 @@ class AnalyticalSet(object):
         return self._sample_set.N
 
     @property
-    def marker_df(self):
+    def marker_df_xxx(self):
         """ return a dataframe of:
                 sample_id   marker_id1  marker_id2  marker_id3
                 1           2           1           0
@@ -82,10 +82,19 @@ class AnalyticalSet(object):
         return self._marker_df
 
     @property
+    def variant_df(self):
+        if self._variant_df is None:
+            self._variant_df = pivot_table( self._allele_df.df, index = 'sample_id', columns = 'locus_id', values='call',
+                aggfunc = lambda x: x )
+        return self._variant_df
+
+    marker_df = variant_df
+
+    @property
     def sample_marker(self):
         if self._sample_marker is None:
             self._sample_marker = {}
-            for (idx, marker_id, sample_id, value, size, height, assay_id, allele_id, ratio, rank) in self.allele_df.df.itertuples():
+            for (idx, marker_id, sample_id, base, A, C, G, T, genotype_id) in self.allele_df.df.itertuples():
                 try:
                     self._sample_marker[sample_id].add( marker_id )
                 except KeyError:
@@ -176,10 +185,10 @@ class AnalyticalSet(object):
         """
         marker_genotyped = []
         for marker_id in self.marker_ids:
-            # check of any x > 0 for marker_df[marker_id] = [ 2 1 0 0 0 ]
+            # variant_df (or marker_df) contains [ 'A' 'C' 'C' 'G' ...]
             genotyped = 0
             for m in self.marker_df.get(marker_id, [0]):
-                if m > 0:
+                if m != 'X':
                     genotyped += 1
             marker_genotyped.append( (marker_id, genotyped) )
 
