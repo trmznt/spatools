@@ -1,6 +1,12 @@
 
-from pandas import DataFrame
+from pandas import DataFrame, concat
 from sqlalchemy.orm.exc import NoResultFound
+
+
+def chunks(l, n):
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
 
 class base_sqlhandler(object):
     """ base class for SQLAlchemy-friendly handler """
@@ -111,15 +117,25 @@ class base_sqlhandler(object):
                         self.Genotype.A, self.Genotype.C,
                         self.Genotype.G, self.Genotype.T,
                         self.Genotype.sample_id )
-        if sample_ids:
-            q = q.filter( self.Genotype.sample_id.in_(sample_ids))
         if locus_ids:
             q = q.filter( self.Genotype.locus_id.in_(locus_ids))
 
-        df = DataFrame( [
-            (locus_id, sample_id, call, A, C, G, T, genotype_id)
-                for (locus_id, sample_id, call, A, C, G, T, genotype_id) in q 
-            ] )
+        if sample_ids:
+            # we need to breakdown the query per 500 to avoid
+            # errors with SQLite (or any other )
+            dfs = []
+            for partial_sample_ids in chunks( list(sample_ids), 250):
+
+                partial_q = q.filter( self.Genotype.sample_id.in_(partial_sample_ids))
+                dfs.append(
+                    DataFrame( [
+                        (locus_id, sample_id, call, A, C, G, T, genotype_id)
+                        for (locus_id, sample_id, call, A, C, G, T, genotype_id)
+                        in partial_q
+                    ] )
+                )
+
+        df = concat( dfs )
         df.columns = ( 'locus_id', 'sample_id', 'call',
                         'A', 'C', 'G', 'T', 'genotype_id' )
 
