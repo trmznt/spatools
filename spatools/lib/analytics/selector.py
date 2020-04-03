@@ -7,12 +7,39 @@ from spatools.lib.const import peaktype
 colour_list = [ '#1f78b4','#33a02c','#e31a1c','#ff7f00','#6a3d9a','#b15928',
                 '#a6cee3','#b2df8a','#fb9a99','#fdbf6f','#cab2d6','#ffff99']
 
+# 12 colours from ColorBrewer2
+colour_scheme = {
+
+    # 12 categorical colours from ColorBrewer2
+    'cb2':    [ '#1f78b4','#33a02c','#e31a1c','#ff7f00','#6a3d9a','#b15928',
+                '#a6cee3','#b2df8a','#fb9a99','#fdbf6f','#cab2d6','#ffff99'],
+
+    # 15 continuous colours from ggplot2
+
+    'ggplot2':[ '#619cff', '#ff67a4', '#a3a500', '#00c0af', '#b983ff', '#f8766d',
+                '#6bb100', '#00bcd8', '#e76bf3', '#e58700', '#00ba39', '#00b0f6',
+                '#fd61d1', '#c99800', '#00bf7d'],
+
+    # 20 categorical colours from Vega
+    'vega20': [ "#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", "#98df8a",
+                "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "#c49c94",
+                "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7", "#bcbd22", "#dbdb8d",
+                "#17becf", "#9edae5" ],
+
+    # 20 categorial colours from IWantHue
+    'hue20':  [ "#7ebbc7", "#6d38c0", "#72dc59", "#cc4dc4", "#cfd94a", "#6f68c9",
+                "#649a40", "#c2477b", "#68d5a9", "#cd3f41", "#637dac", "#dc6931",
+                "#4d285e", "#bf953c", "#cc9acd", "#536840", "#74372c", "#c9d19d",
+                "#363638", "#c69085"],
+
+}
 
 class Selector(object):
 
     def __init__(self, samples = []):
         self.samples = samples
         self.global_options = None
+        self.colour_scheme = 'hue20'
         self._sample_sets = None
 
     @classmethod
@@ -126,7 +153,8 @@ class Selector(object):
 
             elif type(self.samples) == dict:
 
-                colours = cycle( colour_list )
+                print('colour scheme:', self.colour_scheme)
+                colours = cycle( colour_scheme[self.colour_scheme] )
 
                 for label in self.samples:
                     sample_sets.append(
