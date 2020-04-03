@@ -40,7 +40,7 @@ def pcoa( distance_matrix, dim = 2 ):
     return (pcar, pcan.d)
 
 
-def plot_pca( pca_result, distance_matrix, pc1, pc2, filename=None ):
+def plot_pca( pca_result, distance_matrix, pc1, pc2, filename=None, marker='+', size=30, alpha=0.75 ):
     """ plot PCA result using matplotlib """
 
     if not filename:
@@ -58,9 +58,9 @@ def plot_pca( pca_result, distance_matrix, pc1, pc2, filename=None ):
                     c = hs.colour,
                     edgecolor = hs.colour,
                     label = hs.label,
-                    alpha = 0.75,
-                    marker='+',
-                    s = 30
+                    alpha = alpha,
+                    marker=marker,
+                    s = size
         )
 
     if pca_var is not None:
