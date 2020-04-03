@@ -3,11 +3,6 @@ from itertools import cycle
 from spatools.lib.analytics.sampleset import SampleSet, SampleSetContainer
 from spatools.lib.const import peaktype
 
-#colour_list = [ 'r', 'g', 'b' ]
-colour_list = [ '#1f78b4','#33a02c','#e31a1c','#ff7f00','#6a3d9a','#b15928',
-                '#a6cee3','#b2df8a','#fb9a99','#fdbf6f','#cab2d6','#ffff99']
-
-# 12 colours from ColorBrewer2
 colour_scheme = {
 
     # 12 categorical colours from ColorBrewer2
@@ -16,9 +11,9 @@ colour_scheme = {
 
     # 15 continuous colours from ggplot2
 
-    'ggplot2':[ '#619cff', '#ff67a4', '#a3a500', '#00c0af', '#b983ff', '#f8766d',
-                '#6bb100', '#00bcd8', '#e76bf3', '#e58700', '#00ba39', '#00b0f6',
-                '#fd61d1', '#c99800', '#00bf7d'],
+    'ggplot2':[ '#00ba39', '#00b0f6', '#fd61d1', '#c99800', '#00bf7d', '#619cff',
+                '#ff67a4', '#a3a500', '#00c0af', '#b983ff', '#f8766d', '#6bb100',
+                '#00bcd8', '#e76bf3', '#e58700' ],
 
     # 20 categorical colours from Vega
     'vega20': [ "#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", "#98df8a",
@@ -39,11 +34,11 @@ class Selector(object):
     def __init__(self, samples = []):
         self.samples = samples
         self.global_options = None
-        self.colour_scheme = 'hue20'
+        self.options = None
         self._sample_sets = None
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d, opts):
         selector = cls()
         if '_:_' in d:
             global_options = d.pop('_:_')
@@ -51,6 +46,7 @@ class Selector(object):
             global_options = {}
         selector.samples = d
         selector.global_options = global_options
+        selector.options = opts
         return selector
 
     def to_dict(self):
@@ -153,8 +149,8 @@ class Selector(object):
 
             elif type(self.samples) == dict:
 
-                print('colour scheme:', self.colour_scheme)
-                colours = cycle( colour_scheme[self.colour_scheme] )
+                print('colour scheme:', self.options['colour_scheme'])
+                colours = cycle( colour_scheme[self.options['colour_scheme']])
 
                 for label in self.samples:
                     sample_sets.append(
@@ -189,9 +185,10 @@ class Filter(object):
         self.sample_options = None
 
 
-    @staticmethod
-    def from_dict(d):
-        params = Filter()
+    @classmethod
+    def from_dict(cls, d, opts):
+        params = cls()
+        params.options = opts
         params.markers = d.get('markers', None)
         params.marker_ids = d.get('marker_ids', None)
         params.panel_ids = d.get('panel_ids', None)
