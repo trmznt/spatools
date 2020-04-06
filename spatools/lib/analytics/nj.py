@@ -79,10 +79,11 @@ tree <- nj( M )
 %s
 %s
 %s
-plot(tree, "%s", tip.color = C,  edge.color = edge_colors, font=1, cex=0.7, label.offset = 0.009)
+plot(tree, "%s", tip.color = C,  edge.color = edge_colors, font=1, cex=0.7, label.offset = 0.009, show.tip.label=%s)
 legend('topright', inset=c(0,0), c(%s), col = c(%s), lty=1, cex=0.85, xpd=T)
 """ % (matrix_file, colors_file, edge_color_cmd, label_cmd, cmd,
         tree_type,
+        'TRUE' if label_callback else 'FALSE',
         ",".join( '"%s"' % hs.label for (hs,_,_) in distance_matrix.S),
         ",".join( '"%s"' % hs.colour for (hs,_,_) in distance_matrix.S) )
     )
@@ -90,6 +91,6 @@ legend('topright', inset=c(0,0), c(%s), col = c(%s), lty=1, cex=0.85, xpd=T)
     ok = call( ['Rscript', script_file] )
 
     if ok != 0:
-        raise RuntimeError("Rscript run unsucessfully")
+        raise RuntimeError("Rscript %s run unsucessfully" % script_file)
 
     return njtree_file
