@@ -23,7 +23,10 @@ def init_argparser(p = None):
             help = 'upload panel')
 
     p.add_argument('--uploadgenotypes', default=False, action='store_true',
-            help = 'upload sample')
+            help = 'upload genotype')
+
+    p.add_argument('--uploadvcf', default=False, action='store_true',
+            help = 'upload genotype from VCF')
 
     p.add_argument('--createpca', default=False, action='store_true',
             help = 'create a PCA plot')
@@ -92,6 +95,9 @@ def do_dbmgr( args, dbh = None, warning = True ):
     elif args.uploadgenotypes is not False:
         do_uploadgenotypes(args, dbh)
 
+    elif args.uploadvcf is not False:
+        do_uploadvcf(args, dbh)
+
     elif args.importpanels is not False:
         do_importpanels(args, dbh)
 
@@ -154,7 +160,7 @@ def do_uploadsamples(args, dbh):
     else:
         cexit('E: unknown extension file!')
 
-    #print(dict_samples)    
+    #print(dict_samples)
 
     # insert sample dicts to target batch
 
@@ -291,6 +297,20 @@ def do_uploadgenotypes(args, dbh):
     cerr('INFO: Parsing %s samples' % len(genotypes))
 
 
+def do_uploadvcf(args, dbh):
+
+    # search for batch
+    if not args.batch:
+        cexit('ERR: please provide batch code')
+
+    batch = dbh.Batch.search(args.batch, dbh.session())
+    cerr('INFO: using batch [%s]' % batch.code)
+
+    import allel
+
+    pass
+
+
 def do_importpanels(args, dbh):
 
     if not args.infile:
@@ -320,7 +340,7 @@ def basecall( assay_data ):
         base = '-'
     else:
         base = l[0][1] if q > 0.05 else 'N'
-    return l[0][1], q 
+    return l[0][1], q
 
     import IPython
     IPython.embed()
@@ -359,7 +379,7 @@ def do_createpca(args, dbh):
 
     for (i1, i2) in axis:
         ax.scatter( pca_matrix[i1:i2, 0], pca_matrix[i1:i2, 1] )
-        
+
     fig.savefig('test.png')
 
 
