@@ -308,7 +308,78 @@ def do_uploadvcf(args, dbh):
 
     import allel
 
-    pass
+    # read vcf (will consume memory, unfortunately)
+    callset = allel.read_vcf(args.infile,
+        fields = ['samples', 'variants/CHROM', 'variants/POS', 'variants/REF', 'variants/ALT', 'calldata/AD'])
+
+    exists = not_exists = 0
+
+    # prepare sample list
+    samples = []
+    for sample_code in callset['samples']:
+        # search samples
+        sample = batch.search_sample(sample_code)
+        if not sample:
+            cerr('WARN: sample not found: %s' % sample_code)
+            not_exists += 1
+            samples.append(None)
+        else:
+            samples.append(sample)
+            exists += 1
+
+    cerr('INFO: found %d samples, missing %d samples' % (exists, not_exists))
+
+    # prepare locus list
+    locuses = []
+    for chrom, pos, ref, alt in zip(
+        callset['variants/CHROM'], callset['variants/POS'], callset['variants/REF'], callset['variants/ALT']):
+
+        #import IPython; IPython.embed()
+        pos = int(pos) # force from int32 to int
+        locus = dbh.get_locus_by_pos(chrom, pos)
+        if not locus:
+
+            # create and flush locus
+            locus_code = '%s:%d' % (chrom, pos)
+            locus = dbh.Locus(code=locus_code, refseq=chrom, position=int(pos), ref=ref)
+            alts = alt.split(',')
+            locus.alt = alts[0]
+            if len(alts) >= 2:
+                locus.alt2 = alts[1] if len(alts[1]) == 1 else 'X'
+                if len(alts) >= 3:
+                    locus.alt3 = alts[2] if len(alts[2]) == 1 else 'X'
+            dbh.session().add( locus )
+            dbh.session().flush([locus])
+
+        locuses.append(locus)
+
+    # based on sample list and locus list, generate genotype
+
+    ad = allel.GenotypeArray(callset['calldata/AD'])
+
+    for sample_idx in range(len(samples)):
+        sample = samples[sample_idx]
+        if sample is None: continue
+
+        for locus_idx in range(len(locuses)):
+            locus = locuses[locus_idx]
+
+            ref = callset['variants/REF'][locus_idx]
+            alts = callset['variants/ALT'][locus_idx]
+            depth = { 'A': -1, 'C': -1, 'G': -1, 'T': -1}
+            depth[ref] = int(ad[locus_idx, sample_idx][0])
+
+            for i, a in enumerate(alts,1):
+                if not a: continue
+                if len(a) > 1: continue
+                depth[a] = int(ad[locus_idx, sample_idx][i])
+
+            genotype = dbh.Genotype(sample_id = sample.id, locus_id = locus.id,
+                        A = depth['A'], C = depth['C'], T = depth['T'], G = depth['G'])
+            genotype.call, genotype.raw_qual = basecall(depth)
+            dbh.session().add( genotype )
+
+    dbh.session().flush()
 
 
 def do_importpanels(args, dbh):
